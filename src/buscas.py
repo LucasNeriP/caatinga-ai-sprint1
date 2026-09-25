@@ -1,4 +1,4 @@
-"""Buscas sobre o pomar: BFS, DFS (e, nas próximas etapas, UCS e A*).
+"""Buscas sobre o pomar: BFS, DFS e UCS (e, na próxima etapa, A*).
 
 Convenções usadas em TODAS as estratégias:
 - Estado = coordenada (linha, coluna). Nó = estado + pai + custo acumulado.
@@ -10,6 +10,8 @@ Convenções usadas em TODAS as estratégias:
 import time
 from collections import deque
 from dataclasses import dataclass, field
+from heapq import heappop, heappush
+from itertools import count
 
 from gerador_pomar import BLOQUEADO, CUSTO
 
@@ -142,6 +144,57 @@ def dfs(grade, inicio=(0, 0), objetivo=None):
     return _finalizar(res, grade, pais, None, t0)
 
 
+def ucs(grade, inicio=(0, 0), objetivo=None):
+    """Busca de custo uniforme em grafo, com reabertura de estados.
+
+    A fronteira guarda ``(custo, ordem_de_insercao, estado)``. O segundo campo
+    torna o desempate reproduzível e preserva a ordem N, S, O, L entre nós de
+    mesmo custo. Um estado volta à fronteira quando aparece um caminho mais
+    barato; entradas antigas ficam obsoletas e são ignoradas ao sair da fila.
+
+    O objetivo é aceito ao ser removido da fila de prioridade. Com custos de
+    entrada positivos, esse é o momento em que a UCS garante que o menor custo
+    até ele foi encontrado.
+    """
+    n = len(grade)
+    objetivo = objetivo or (n - 1, n - 1)
+    t0 = time.perf_counter()
+    res = Resultado("UCS")
+
+    desempate = count()
+    fronteira = [(0, next(desempate), inicio)]
+    melhor_custo = {inicio: 0}
+    custo_expandido = {}
+    pais = {inicio: None}
+    res.fronteira_max = 1
+
+    while fronteira:
+        custo, _, estado = heappop(fronteira)
+
+        # Uma melhoria posterior pode deixar entradas antigas na heap.
+        if custo != melhor_custo.get(estado):
+            continue
+        anterior = custo_expandido.get(estado)
+        if anterior is not None and custo >= anterior:
+            continue
+
+        if estado == objetivo:
+            return _finalizar(res, grade, pais, objetivo, t0)
+
+        custo_expandido[estado] = custo
+        res.nos_expandidos += 1
+        for viz, custo_entrada in vizinhos(grade, estado):
+            novo_custo = custo + custo_entrada
+            if novo_custo >= melhor_custo.get(viz, float("inf")):
+                continue
+            melhor_custo[viz] = novo_custo
+            pais[viz] = estado
+            heappush(fronteira, (novo_custo, next(desempate), viz))
+        res.fronteira_max = max(res.fronteira_max, len(fronteira))
+
+    return _finalizar(res, grade, pais, None, t0)
+
+
 def imprimir_tabela(resultados):
     print(f"{'Estratégia':<12}{'Custo':>7}{'Passos':>8}{'Expandidos':>12}"
           f"{'Fronteira máx.':>16}{'Tempo (ms)':>12}")
@@ -157,4 +210,4 @@ if __name__ == "__main__":
 
     matricula = int(sys.argv[1]) if len(sys.argv) > 1 else 20231045
     grade = gerar_pomar(matricula)
-    imprimir_tabela([bfs(grade), dfs(grade)])
+    imprimir_tabela([bfs(grade), dfs(grade), ucs(grade)])
