@@ -108,14 +108,27 @@ def situacao_memoria_sistema():
     return None, None, None
 
 
-def _executar_busca(matricula, n, nome_estrategia, fila):
+def _executar_busca(
+    matricula,
+    n,
+    nome_estrategia,
+    fila,
+    busca_iniciada,
+    tempo_geracao_compartilhado,
+    inicio_busca_compartilhado,
+):
     """Função executada no processo filho."""
     try:
         inicio_geracao = time.perf_counter()
         grade = gerar_pomar(matricula, n)
         tempo_geracao = time.perf_counter() - inicio_geracao
+        tempo_geracao_compartilhado.value = tempo_geracao
 
+        # O enunciado limita a estratégia de busca a 60 s. Este evento separa
+        # esse tempo da geração da grade e da inicialização do processo.
         inicio_busca = time.perf_counter()
+        inicio_busca_compartilhado.value = inicio_busca
+        busca_iniciada.set()
         resultado = ESTRATEGIAS[nome_estrategia](grade)
         tempo_busca = time.perf_counter() - inicio_busca
 
@@ -162,22 +175,39 @@ def executar_com_limite(
     limite_segundos,
     limite_memoria_percentual,
 ):
-    """Executa isoladamente e encerra ao atingir tempo ou memória."""
+    """Executa isoladamente e limita o tempo da busca, não o da geração."""
     contexto = mp.get_context("spawn")
     fila = contexto.Queue()
+    busca_iniciada = contexto.Event()
+    tempo_geracao_compartilhado = contexto.Value("d", 0.0)
+    inicio_busca_compartilhado = contexto.Value("d", 0.0)
     processo = contexto.Process(
         target=_executar_busca,
-        args=(matricula, n, estrategia, fila),
+        args=(
+            matricula,
+            n,
+            estrategia,
+            fila,
+            busca_iniciada,
+            tempo_geracao_compartilhado,
+            inicio_busca_compartilhado,
+        ),
     )
 
     inicio_total = time.perf_counter()
     processo.start()
-    prazo = inicio_total + limite_segundos
+    inicio_limite_busca = None
+    prazo_busca = None
     motivo_parada = None
+    momento_parada = None
     pico_memoria = None
     minimo_disponivel = None
 
     while processo.is_alive():
+        if busca_iniciada.is_set() and inicio_limite_busca is None:
+            inicio_limite_busca = inicio_busca_compartilhado.value
+            prazo_busca = inicio_limite_busca + limite_segundos
+
         memoria_usada, memoria_disponivel, _ = situacao_memoria_sistema()
         if memoria_usada is not None:
             pico_memoria = max(pico_memoria or 0.0, memoria_usada)
@@ -187,13 +217,22 @@ def executar_com_limite(
             )
             if memoria_usada >= limite_memoria_percentual:
                 motivo_parada = "MEMORIA"
+                momento_parada = time.perf_counter()
                 break
 
-        restante = prazo - time.perf_counter()
-        if restante <= 0:
+        if prazo_busca is None:
+            # O evento acorda o processo pai assim que a geração termina, sem
+            # conceder até 0,1 s extra de busca por causa do intervalo de
+            # monitoramento.
+            busca_iniciada.wait(0.1)
+            continue
+
+        restante_busca = prazo_busca - time.perf_counter()
+        if restante_busca <= 0:
             motivo_parada = "TEMPO"
+            momento_parada = time.perf_counter()
             break
-        processo.join(min(0.1, restante))
+        processo.join(min(0.1, restante_busca))
 
     if motivo_parada is not None and processo.is_alive():
         processo.terminate()
@@ -202,15 +241,30 @@ def executar_com_limite(
             processo.kill()
             processo.join()
 
-    tempo_total = time.perf_counter() - inicio_total
+    fim_execucao = time.perf_counter()
+    tempo_total = fim_execucao - inicio_total
+    tempo_busca_interrompida = (
+        None
+        if inicio_limite_busca is None
+        else (momento_parada or fim_execucao) - inicio_limite_busca
+    )
+    tempo_geracao_interrompida = (
+        tempo_geracao_compartilhado.value
+        if busca_iniciada.is_set()
+        else None
+    )
     if motivo_parada == "TEMPO":
         resultado = {
             "status": "TEMPO",
-            "detalhe": f"execução interrompida após {limite_segundos:g} s",
+            "tempo_geracao_s": tempo_geracao_interrompida,
+            "tempo_busca_s": tempo_busca_interrompida,
+            "detalhe": f"busca interrompida após {limite_segundos:g} s",
         }
     elif motivo_parada == "MEMORIA":
         resultado = {
             "status": "MEMORIA",
+            "tempo_geracao_s": tempo_geracao_interrompida,
+            "tempo_busca_s": tempo_busca_interrompida,
             "detalhe": (
                 "execução interrompida porque a memória do sistema atingiu "
                 f"{pico_memoria:.1f}% (limite configurado: "
@@ -311,7 +365,7 @@ def criar_argumentos():
         "--limite-segundos",
         type=float,
         default=60.0,
-        help="limite por estratégia (padrão: 60)",
+        help="limite de tempo da busca por estratégia (padrão: 60)",
     )
     parser.add_argument(
         "--max-n",

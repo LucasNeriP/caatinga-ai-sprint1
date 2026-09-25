@@ -1,0 +1,3 @@
+n,estrategia,status,custo,passos,nos_expandidos,fronteira_max,tempo_geracao_s,tempo_busca_s,tempo_total_s,memoria_sistema_pico_percentual,memoria_disponivel_min_mib,limite_memoria_percentual,detalhe
+3800,BFS,OK,16778,7598,11530933,3428,1.2890164000000368,23.813120899999944,25.42455749999999,72.18353657624974,4360.73046875,88.0,
+3800,DFS,TEMPO,,,,,1.259749299999953,60.0131427,61.90799430000004,73.61548965180427,4136.24609375,88.0,busca interrompida após 60 s

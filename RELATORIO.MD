@@ -107,50 +107,46 @@ considera essa diferença ao ordenar a fronteira pelo custo acumulado.
 
 Executamos BFS, DFS e UCS com a matrícula `24114032` e aumentamos a dimensão da
 grade na sequência `12, 40, 100, 200, 400, 800, 1600, 2400, 2800, 3000, 3200,
-3400, 3600`. Cada estratégia foi executada em um processo isolado, com limite
-de 60 s de tempo total e limite operacional de 88% da memória física. O limite
-de memória encerra o processo antes de um travamento do sistema e, portanto,
-não deve ser confundido com um `MemoryError`.
+3400, 3600, 3800`. Cada estratégia foi executada em um processo isolado. O
+cronômetro de 60 s começa somente quando a busca inicia, sem incluir a geração
+da grade nem a inicialização do processo. Também usamos um limite operacional
+de 88% da memória física para evitar o travamento do computador.
 
-O último tamanho em que as três estratégias terminaram foi `n=3400`:
-
-| n | Estratégia | Status | Tempo da busca (s) | Tempo total (s) | Nós expandidos | Fronteira máxima | Pico de memória |
-|---:|---|---|---:|---:|---:|---:|---:|
-| 3400 | BFS | OK | 17,88 | 19,28 | 9.232.948 | 3.078 | 77,4% |
-| 3400 | DFS | OK | 48,22 | 50,98 | 7.189.276 | 4.655.357 | 83,4% |
-| 3400 | UCS | OK | 39,54 | 40,86 | 9.232.949 | 5.015 | 82,7% |
-
-Em `n=3600`, ocorreu a primeira falha medida:
+O último tamanho em que as três estratégias terminaram foi `n=3600`:
 
 | n | Estratégia | Status | Tempo da busca (s) | Tempo total (s) | Nós expandidos | Fronteira máxima | Pico de memória |
 |---:|---|---|---:|---:|---:|---:|---:|
-| 3600 | BFS | OK | 20,49 | 21,98 | 10.350.249 | 3.205 | 77,8% |
-| 3600 | DFS | TEMPO | interrompida | 60,17 | - | - | 84,8% |
+| 3600 | BFS | OK | 19,68 | 21,16 | 10.350.249 | 3.205 | 66,2% |
+| 3600 | DFS | OK | 57,43 | 59,45 | 8.063.049 | 5.207.260 | 73,7% |
+| 3600 | UCS | OK | 43,71 | 45,21 | 10.350.245 | 5.314 | 72,4% |
 
-A UCS não foi executada em `n=3600`, pois o experimento foi programado para
-parar assim que uma das três estratégias atingisse um limite. A falha observada
-foi de **tempo**, não de memória nem de pilha. Como a DFS foi interrompida, ela
-não produziu rota nem contadores finais nesse tamanho.
+Em `n=3800`, ocorreu a primeira falha segundo o critério do enunciado:
 
-O tempo de 60 s é o tempo total do processo isolado, incluindo geração da grade
-e inicialização. Essa convenção mede o tempo de execução percebido por quem roda
-o experimento; por isso o tempo exclusivo da DFS interrompida não está
-disponível.
+| n | Estratégia | Status | Tempo da busca (s) | Tempo total (s) | Nós expandidos | Fronteira máxima | Pico de memória |
+|---:|---|---|---:|---:|---:|---:|---:|
+| 3800 | BFS | OK | 23,81 | 25,42 | 11.530.933 | 3.428 | 72,2% |
+| 3800 | DFS | TEMPO | 60,01 | 61,91 | - | - | 73,6% |
+
+A UCS não foi executada em `n=3800`, pois o experimento para assim que uma das
+três estratégias atinge um limite. A primeira falha válida foi, portanto, a DFS
+por **tempo de busca acima de 60 s**, não por memória nem por pilha. Como a DFS
+foi interrompida, ela não produziu rota nem contadores finais nesse tamanho.
 
 Em uma grade `n x n`, o número de estados possíveis cresce como `Theta(n²)`.
-Em `n=3400` há 11.560.000 coordenadas, e a BFS examinou 9.232.948 estados
+Em `n=3600` há 12.960.000 coordenadas, e a BFS examinou 10.350.249 estados
 alcançáveis. Quando `n` cresce, a quantidade de estados que precisa ser
 armazenada e examinada também cresce aproximadamente de forma quadrática.
 
-Na formulação clássica da Aula 03, a DFS tem tempo de pior caso `O(b^m)`, em que
-`b` é o fator de ramificação e `m` é a profundidade máxima. Neste pomar,
-`b <= 4`, mas a profundidade alcançada pela DFS pode ser muito grande. Nossa
-implementação em grafo usa conjunto de explorados e pilha explícita, evitando
-laços e estouro da pilha de chamadas do Python, mas ainda precisa manter muitos
-estados. Em `n=3400`, a fronteira da DFS chegou a 4.655.357 entradas e a busca
-levou 48,22 s; no tamanho seguinte, atingiu o limite de 60 s. Os números medidos
-mostram o crescimento previsto pela análise teórica e identificam o tempo como
-o primeiro recurso limitante neste computador.
+Na formulação clássica da Aula 03, uma DFS em árvore tem tempo de pior caso
+`O(b^m)`, em que `b` é o fator de ramificação e `m` é a profundidade máxima.
+Nossa implementação é uma busca em grafo com conjunto de explorados; por isso,
+o limite mais específico é `O(V + E)`. Como a grade possui `V = n²` coordenadas
+e cada uma tem no máximo quatro arestas, o crescimento esperado é `O(n²)`.
+A pilha pode conter entradas duplicadas ainda não expandidas, mas cada estado é
+expandido no máximo uma vez. Em `n=3600`, a fronteira da DFS chegou a 5.207.260
+entradas e a busca levou 57,43 s; em `n=3800`, ela atingiu 60 s antes de
+terminar. Os números medidos identificam o tempo como o primeiro recurso
+limitante neste computador.
 
 ## Parte 3 - Busca informada
 

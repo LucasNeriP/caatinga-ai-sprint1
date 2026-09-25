@@ -29,8 +29,9 @@ python src/buscas.py 24114032
 No Windows, caso o comando `python` não esteja disponível, substitua-o por
 `py`.
 
-O primeiro comando de execução compara BFS e UCS com a caixa de aferição do
-enunciado. O segundo executa BFS, DFS e UCS no pomar da dupla.
+O comando de aferição compara BFS, UCS e A* com a caixa de referência do
+enunciado. O comando de buscas executa BFS, DFS, UCS e as três versões do A*
+no pomar da dupla.
 
 ## Resultados atuais
 
@@ -51,11 +52,10 @@ custo. Isso ocorre porque os passos não têm custo uniforme: entrar em `.` cust
 
 ### Experimento de escala
 
-O último tamanho em que BFS, DFS e UCS terminaram foi `n=3400`. Em `n=3600`,
-a BFS terminou em 20,49 s, mas a DFS atingiu o limite de 60 s do experimento e
-foi interrompida. O pico de memória registrado nessa execução foi 84,8%, abaixo
-do limite operacional configurado de 88%. A UCS não foi executada porque o
-experimento para na primeira falha.
+O último tamanho em que BFS, DFS e UCS terminaram foi `n=3600`. Em `n=3800`,
+a BFS terminou, mas a DFS atingiu o limite de 60 s de busca e foi interrompida.
+O pico de memória dessa execução foi 73,6%, abaixo do limite operacional de
+88%. A UCS não foi executada porque o experimento para na primeira falha.
 
 ## Convenções das buscas
 
@@ -80,8 +80,10 @@ experimento para na primeira falha.
 - [`src/aferir.py`](src/aferir.py): validação contra os números de referência.
 - [`src/experimento_escala.py`](src/experimento_escala.py): experimento da Parte
   2.4 com limites controlados de tempo e memória.
-- [`resultados/escala_3600.csv`](resultados/escala_3600.csv): evidência da
-  primeira execução interrompida pelo limite de tempo.
+- [`resultados/escala_3600_corrigida.csv`](resultados/escala_3600_corrigida.csv):
+  último tamanho em que as três buscas terminaram.
+- [`resultados/escala_3800_corrigida.csv`](resultados/escala_3800_corrigida.csv):
+  primeira falha válida pelo limite de 60 s de busca.
 
 ## Limitações conhecidas
 
