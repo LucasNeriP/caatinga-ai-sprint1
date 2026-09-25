@@ -46,6 +46,14 @@ A BFS encontrou uma rota com menos passos que a UCS, mas não a rota de menor
 custo. Isso ocorre porque os passos não têm custo uniforme: entrar em `.` custa
 1 unidade e entrar em `~` custa 4 unidades.
 
+### Experimento de escala
+
+O último tamanho em que BFS, DFS e UCS terminaram foi `n=3400`. Em `n=3600`,
+a BFS terminou em 20,49 s, mas a DFS atingiu o limite de 60 s do experimento e
+foi interrompida. O pico de memória registrado nessa execução foi 84,8%, abaixo
+do limite operacional configurado de 88%. A UCS não foi executada porque o
+experimento para na primeira falha.
+
 ## Convenções das buscas
 
 - Ordem de expansão dos vizinhos: Norte, Sul, Oeste e Leste.
@@ -66,12 +74,15 @@ custo. Isso ocorre porque os passos não têm custo uniforme: entrar em `.` cust
   mantido intacto.
 - [`src/buscas.py`](src/buscas.py): BFS, DFS, UCS e instrumentação das buscas.
 - [`src/aferir.py`](src/aferir.py): validação contra os números de referência.
+- [`src/experimento_escala.py`](src/experimento_escala.py): experimento da Parte
+  2.4 com limites controlados de tempo e memória.
+- [`resultados/escala_3600.csv`](resultados/escala_3600.csv): evidência da
+  primeira execução interrompida pelo limite de tempo.
 
 ## Limitações conhecidas
 
 - A*, busca local, sistema especialista, Bayes e o orquestrador `src/main.py`
   ainda não foram implementados.
-- O experimento de escala da Parte 2.4 ainda não foi executado.
 - `resultados.csv`, `grafico.png` e `pomar.txt` ainda não são gerados
   automaticamente.
 - A identificação do segundo integrante e a confirmação da matrícula-semente
