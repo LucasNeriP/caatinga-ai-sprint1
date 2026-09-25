@@ -152,8 +152,67 @@ levou 48,22 s; no tamanho seguinte, atingiu o limite de 60 s. Os números medido
 mostram o crescimento previsto pela análise teórica e identificam o tempo como
 o primeiro recurso limitante neste computador.
 
+## Parte 3 - Busca informada
+
+### 3.1 A* com três heurísticas
+
+Executamos o A* com a matrícula `24114032`. Em todas as versões, a prioridade
+da fronteira é `f(n) = g(n) + h(n)`, em que `g(n)` é o custo real acumulado e
+`h(n)` estima o custo restante. A implementação reabre um estado quando encontra
+um caminho mais barato até ele.
+
+| Heurística | Custo da rota | Nós expandidos | Admissível? |
+|---|---:|---:|---|
+| h1: `0` | 48 | 114 | Sim |
+| h2: Manhattan | 48 | 110 | Sim |
+| h3: `4 x Manhattan` | 54 | 42 | Não |
+
+A h1 produziu os mesmos números da UCS, como esperado, pois `f(n) = g(n)`
+quando a heurística é zero. A h2 preservou o custo ótimo e expandiu quatro nós a
+menos. A h3 expandiu muito menos nós, mas devolveu uma rota mais cara.
+
+### 3.2 Admissibilidade e contraexemplo
+
+A h1 é admissível porque vale zero e os custos restantes nunca são negativos.
+
+Para h2, seja `d` a distância de Manhattan entre o estado atual e `(11, 11)`.
+Cada ação ortogonal reduz essa distância em no máximo uma unidade, portanto são
+necessários pelo menos `d` movimentos. Como o menor custo de entrada em um
+talhão é 1, o custo real restante é pelo menos `d`. Logo,
+`h2(n) = d <= h*(n)`, e h2 é admissível.
+
+A h3 não é admissível. Um contraexemplo concreto do nosso pomar é o par de
+talhões `(0, 0)` e `(11, 11)`. A distância de Manhattan é 22, então h3 estima
+`4 x 22 = 88`. A UCS mediu custo ótimo real 48 entre essas coordenadas. Como
+`88 > 48`, a heurística superestima o custo restante.
+
+### 3.3 Custo de h3 e troca entre qualidade e velocidade
+
+A UCS devolveu custo 48 e expandiu 114 nós. O A* com h3 devolveu custo 54 e
+expandiu 42 nós. A perda de qualidade foi:
+
+```text
+(54 - 48) / 48 x 100 = 12,5%
+```
+
+Em troca, h3 evitou `114 - 42 = 72` expansões, uma redução de aproximadamente
+63,2%. O resultado ótimo obtido por uma heurística em um caso isolado nunca
+provaria sua admissibilidade, pois admissibilidade exige que ela não
+superestime em nenhum estado; neste pomar, porém, h3 efetivamente retornou custo
+maior e o contraexemplo da seção anterior demonstra formalmente a
+superestimação.
+
+Uma condição de negócio verificável para aceitar essa troca seria uma
+reconfiguração urgente de rota após a descoberta de um bloqueio: usar h3 apenas
+se houver prazo máximo de resposta e se a rota custar no máximo 15% acima da
+ótima, ao mesmo tempo em que reduzir pelo menos 50% das expansões. Neste
+experimento, h3 respeitou esses dois limites (12,5% de perda e 63,2% de redução).
+No pomar 12 x 12, entretanto, todas as buscas terminaram em menos de 1 ms; sem
+uma exigência real de tempo, h2 é preferível porque mantém a garantia de
+otimalidade.
+
 ## Partes seguintes
 
-- Parte 3 - Busca informada: pendente.
+- Parte 3.4 - Busca local: pendente.
 - Parte 4 - Regras e incerteza: pendente.
 - Parte 5 - Auditoria do laudo: pendente.

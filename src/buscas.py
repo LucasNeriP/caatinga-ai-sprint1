@@ -1,4 +1,4 @@
-"""Buscas sobre o pomar: BFS, DFS e UCS (e, na próxima etapa, A*).
+"""Buscas sobre o pomar: BFS, DFS, UCS e A*.
 
 Convenções usadas em TODAS as estratégias:
 - Estado = coordenada (linha, coluna). Nó = estado + pai + custo acumulado.
@@ -18,6 +18,9 @@ from gerador_pomar import BLOQUEADO, CUSTO
 # (delta_linha, delta_coluna) na ordem declarada: N, S, O, L.
 # Linha 0 fica no topo da grade, por isso Norte é linha - 1.
 DIRECOES = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+# h1 não estima custo; h2 usa Manhattan; h3 multiplica Manhattan por 4.
+MULTIPLICADORES_HEURISTICA = {"h1": 0, "h2": 1, "h3": 4}
 
 
 @dataclass
@@ -195,6 +198,72 @@ def ucs(grade, inicio=(0, 0), objetivo=None):
     return _finalizar(res, grade, pais, None, t0)
 
 
+def distancia_manhattan(estado, objetivo):
+    """Distância ortogonal entre duas coordenadas da grade."""
+    return abs(estado[0] - objetivo[0]) + abs(estado[1] - objetivo[1])
+
+
+def astar(grade, heuristica="h2", inicio=(0, 0), objetivo=None):
+    """Busca A* em grafo, com reabertura e três heurísticas do enunciado.
+
+    A prioridade é ``f(n) = g(n) + h(n)``. ``g`` é o custo real já percorrido
+    e ``h`` é Manhattan multiplicada por 0 (h1), 1 (h2) ou 4 (h3).
+
+    Quando surge um caminho mais barato para um estado, ele entra novamente na
+    fila. Entradas antigas são descartadas ao sair da heap. O contador de
+    inserção resolve empates em ordem FIFO e mantém o resultado reproduzível.
+    """
+    if heuristica not in MULTIPLICADORES_HEURISTICA:
+        opcoes = ", ".join(MULTIPLICADORES_HEURISTICA)
+        raise ValueError(f"heurística inválida: {heuristica!r}; use {opcoes}")
+
+    n = len(grade)
+    objetivo = objetivo or (n - 1, n - 1)
+    multiplicador = MULTIPLICADORES_HEURISTICA[heuristica]
+    t0 = time.perf_counter()
+    res = Resultado("A*", heuristica)
+
+    def estimativa(estado):
+        return multiplicador * distancia_manhattan(estado, objetivo)
+
+    desempate = count()
+    fronteira = [(estimativa(inicio), next(desempate), 0, inicio)]
+    melhor_custo = {inicio: 0}
+    custo_expandido = {}
+    pais = {inicio: None}
+    res.fronteira_max = 1
+
+    while fronteira:
+        _, _, custo, estado = heappop(fronteira)
+
+        # Ignora uma entrada que ficou obsoleta após uma melhoria de custo.
+        if custo != melhor_custo.get(estado):
+            continue
+        anterior = custo_expandido.get(estado)
+        if anterior is not None and custo >= anterior:
+            continue
+
+        if estado == objetivo:
+            return _finalizar(res, grade, pais, objetivo, t0)
+
+        custo_expandido[estado] = custo
+        res.nos_expandidos += 1
+        for viz, custo_entrada in vizinhos(grade, estado):
+            novo_custo = custo + custo_entrada
+            if novo_custo >= melhor_custo.get(viz, float("inf")):
+                continue
+            melhor_custo[viz] = novo_custo
+            pais[viz] = estado
+            prioridade = novo_custo + estimativa(viz)
+            heappush(
+                fronteira,
+                (prioridade, next(desempate), novo_custo, viz),
+            )
+        res.fronteira_max = max(res.fronteira_max, len(fronteira))
+
+    return _finalizar(res, grade, pais, None, t0)
+
+
 def imprimir_tabela(resultados):
     print(f"{'Estratégia':<12}{'Custo':>7}{'Passos':>8}{'Expandidos':>12}"
           f"{'Fronteira máx.':>16}{'Tempo (ms)':>12}")
@@ -210,4 +279,13 @@ if __name__ == "__main__":
 
     matricula = int(sys.argv[1]) if len(sys.argv) > 1 else 20231045
     grade = gerar_pomar(matricula)
-    imprimir_tabela([bfs(grade), dfs(grade), ucs(grade)])
+    imprimir_tabela(
+        [
+            bfs(grade),
+            dfs(grade),
+            ucs(grade),
+            astar(grade, "h1"),
+            astar(grade, "h2"),
+            astar(grade, "h3"),
+        ]
+    )

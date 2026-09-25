@@ -13,8 +13,8 @@
 O Caatinga.AI simula um agente que atravessa um pomar de manga representado por
 uma grade de 12 x 12 talhões. O agente parte de `(0, 0)` e busca o ponto de
 coleta em `(11, 11)`, evitando bloqueios e considerando os custos dos terrenos.
-Esta etapa compara BFS, DFS e UCS por custo, passos, nós expandidos e tamanho
-máximo da fronteira.
+Esta etapa compara BFS, DFS, UCS e A* por custo, passos, nós expandidos e
+tamanho máximo da fronteira.
 
 ## Como executar
 
@@ -41,6 +41,9 @@ Resultados medidos com a matrícula `24114032`:
 | BFS | 55 | 22 | 111 | 11 | Não |
 | DFS | 170 | 68 | 105 | 59 | Não |
 | UCS | 48 | 24 | 114 | 15 | Sim |
+| A* h1 | 48 | 24 | 114 | 15 | Sim |
+| A* h2 | 48 | 24 | 110 | 20 | Sim |
+| A* h3 | 54 | 24 | 42 | 27 | Não |
 
 A BFS encontrou uma rota com menos passos que a UCS, mas não a rota de menor
 custo. Isso ocorre porque os passos não têm custo uniforme: entrar em `.` custa
@@ -61,8 +64,8 @@ experimento para na primeira falha.
 - A BFS usa fila FIFO e busca a menor profundidade.
 - A DFS usa pilha explícita e não depende da pilha de recursão do Python.
 - A UCS usa fila de prioridade pelo custo acumulado e aceita melhorias de custo.
-- O A* ainda não foi implementado; a política de reabertura será declarada após
-  essa etapa.
+- O A* usa `f(n) = g(n) + h(n)` e reabre estados quando encontra um caminho
+  mais barato.
 
 ## Mapa do repositório
 
@@ -72,7 +75,8 @@ experimento para na primeira falha.
 - [`requirements.txt`](requirements.txt): dependências externas do projeto.
 - [`src/gerador_pomar.py`](src/gerador_pomar.py): gerador fornecido no enunciado,
   mantido intacto.
-- [`src/buscas.py`](src/buscas.py): BFS, DFS, UCS e instrumentação das buscas.
+- [`src/buscas.py`](src/buscas.py): BFS, DFS, UCS, A* e instrumentação das
+  buscas.
 - [`src/aferir.py`](src/aferir.py): validação contra os números de referência.
 - [`src/experimento_escala.py`](src/experimento_escala.py): experimento da Parte
   2.4 com limites controlados de tempo e memória.
@@ -81,8 +85,8 @@ experimento para na primeira falha.
 
 ## Limitações conhecidas
 
-- A*, busca local, sistema especialista, Bayes e o orquestrador `src/main.py`
-  ainda não foram implementados.
+- Busca local, sistema especialista, Bayes e o orquestrador `src/main.py` ainda
+  não foram implementados.
 - `resultados.csv`, `grafico.png` e `pomar.txt` ainda não são gerados
   automaticamente.
 - A identificação do segundo integrante e a confirmação da matrícula-semente
