@@ -70,7 +70,7 @@ O pico de memória dessa execução foi 73,6%, abaixo do limite operacional de
 ## Mapa do repositório
 
 - [`README.md`](README.md): apresentação, execução e resumo dos resultados.
-- [`RELATORIO.MD`](RELATORIO.MD): respostas e análises exigidas na atividade.
+- [`RELATORIO.md`](RELATORIO.md): respostas e análises exigidas na atividade.
 - [`ANEXO_IA.md`](ANEXO_IA.md): registro obrigatório do uso de assistentes de IA.
 - [`requirements.txt`](requirements.txt): dependências externas do projeto.
 - [`src/gerador_pomar.py`](src/gerador_pomar.py): gerador fornecido no enunciado,
