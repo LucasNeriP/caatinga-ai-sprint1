@@ -5,13 +5,18 @@
 | Integrante | Ferramenta | Partes do trabalho |
 |---|---|---|
 | Paulo | Claude Code (modelo Claude Opus 5.5), no terminal do Windows | Estrutura do repositório e BFS/DFS (Etapas 1 e 2); busca local (3.4); contraexemplo da DFS (bônus); sistema especialista (4.1 e 4.2); Bayes (4.3); `main.py`; redação das Partes 3.4, 4 e 5 do relatório; README; este anexo e o `COMO_EXPLICAR.md` |
-| Lucas | **PREENCHER** | **PREENCHER** |
+| Lucas | OpenAI Codex | Leitura do enunciado e levantamento do que estava pronto e pendente nas Partes 1 a 5; conferência da caixa de aferição (BFS, UCS, A*) e interpretação dos resultados; verificação dos commits e da integração de `busca_local.py`, `especialista.py`, `bayes.py`, `contraexemplo_dfs.py` e `main.py`; revisão dos resultados da busca local, do especialista e de Bayes; orientação sobre commits, README, relatório, anexo e PDF do AVA |
 
 Como usamos: Pedimos instruções, explicações e códigos aos agentes para nos instruir e auxiliar.
 
 Fluxo com o Claude Code: o assistente escrevia e testava cada arquivo numa pasta
 temporária, mostrava a saída, e só depois o Paulo copiava o arquivo para o
 repositório, rodava de novo e fazia o commit.
+
+O Codex chegou a produzir uma versão preliminar de `especialista.py`, que foi
+descartada antes da integração; o arquivo do repositório não é essa versão.
+Todos os valores do trabalho vieram da execução do código da dupla e foram
+conferidos pelos integrantes.
 
 ## A.2 Dois prompts na íntegra, com a resposta recebida
 
@@ -354,4 +359,5 @@ resposta foi corrigida no `COMO_EXPLICAR.md` antes da entrega.
 
 ## A.4 O que sabíamos depois de rodar o código que não sabíamos lendo a resposta
 
-**PREENCHER**
+Tivemos que implementar uma "trava" para o consumo de memória não passar dos 92%. Ocorreu e ultrapassou os 92% e 
+a máquina do Lucas travou. Não sabíamos do possível risco, logo, tivemos que passar pelo risco para sim adaptar.
