@@ -5,8 +5,8 @@
 - **Disciplina:** Inteligência Artificial - Prof. Ronierison Maciel - UniRios
 - **Período:** 2026.2
 - **Integrante:** Lucas Neri - matrícula 241.14.032
-- **Integrante:** **PREENCHER NOME COMPLETO** - matrícula **PREENCHER**
-- **Matrícula usada como semente:** `24114032` (integrante mais velho: **CONFIRMAR**)
+- **Integrante:** Paulo de Lima - matrícula 241.14.009
+- **Matrícula usada como semente:** `24114032` (integrante mais velho: Lucas Neri)
 
 ## 2. O que este projeto faz
 

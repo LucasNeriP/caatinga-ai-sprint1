@@ -5,8 +5,8 @@
 - Disciplina: Inteligência Artificial
 - Período: 2026.2
 - Integrante: Lucas Neri - matrícula 241.14.032
-- Integrante: **PREENCHER NOME COMPLETO E MATRÍCULA**
-- Matrícula usada como semente: `24114032` (**confirmar se pertence ao integrante mais velho**)
+- Integrante: Paulo de Lima - matrícula 241.14.009
+- Matrícula usada como semente: `24114032` (Lucas Neri, integrante mais velho)
 - Ordem de expansão dos vizinhos: Norte, Sul, Oeste e Leste
 
 ## Parte 1 - O agente antes do código
